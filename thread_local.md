@@ -779,7 +779,7 @@ __attribute((tls_model("initial-exec")))
 thread_local int value_tl = InvalidValue;
 
 int getValueTLCustomInit(){
-  if (value_tl == InvalidValue0) { 
+  if (value_tl == InvalidValue) { 
     value_tl = getInitValue(); 
   }
   return value_tl;
