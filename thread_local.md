@@ -278,14 +278,14 @@ struct ClassWithValidation : T{
     template <class ... TArgs>
     ClassWithValidation(bool & isAlive, TArgs ... args)
     : m_isAlive(isAlive)
-    , T(std::forward<TArgs>(args)...) 
-    {}
+    , T(std::forward<TArgs>(args)...) {}
     ~ClassWithValidation() { m_isAlive = false; }
   private:
     bool & m_isAlive;
 };
-thread_local ClassWithValidation<std::string> lastErrorMsg;
 thread_local bool isLastErrorMsgAlive = true;
+using SafeString = ClassWithValidation<std::string>
+thread_local SafeString lastErrorMsg(isLastErrorMsgAlive);
 
 void setLastErrorMsg(std::string const & str){
   if (isLastErrorMsgAlive) lastErrorMsg = str;
