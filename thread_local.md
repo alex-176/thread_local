@@ -2,9 +2,8 @@
 # global part
 # You can also start simply with 'default'
 theme: seriph
-title: Thread local
-info: |
-  C++ thread_local.
+title: C++ thread_local
+info: C++ thread_local in-depth.
 
 # https://sli.dev/features/drawing
 drawings:
