@@ -45,16 +45,13 @@ hideInToc: true
 <br>
 <br>
 <br>
+<br>
 
 # Agenda
 
-<br>
-
-#### Disclaimer:
-#### most topics are beyond C++ standard
 ::right::
 
-<style> .slidev-toc { font-size: 22px; margin-left: -20px; margin-top: 60px; }  </style>
+<style> .slidev-toc { font-size: 22px; margin-left: -20px; margin-top: 40px; }  </style>
 <Toc minDepth="1" maxDepth="1" />
 
 
@@ -230,7 +227,7 @@ layoutClass: gap-6
 
 # Class Destruction : WA-0 (POD)
 #### if possible - use Plain Old Data structures. E.g. `string` becomes `char[]`.
-#### Applicable if your no resource management is required.
+#### Applicable if a resource management is not required.
 ::left::
 
 ```cpp
@@ -278,24 +275,24 @@ hideInToc: true
 ```cpp
 template <class T>
 struct ClassWithValidation : T{
-    using T::T;
+    template <class ... TArgs>
+    ClassWithValidation(bool & isAlive, TArgs ... args)
+    : m_isAlive(isAlive)
+    , T(std::forward<TArgs>(args)...) 
+    {}
     ~ClassWithValidation() { m_isAlive = false; }
-    bool isAlive() { return m_isAlive; };
   private:
-    volatile bool m_isAlive = true;
-};;
-
+    bool & m_isAlive;
+};
 thread_local ClassWithValidation<std::string> lastErrorMsg;
+thread_local bool isLastErrorMsgAlive = true;
 
 void setLastErrorMsg(std::string const & str){
-  if (lastErrorMsg.isValid()) {
-    lastErrorMsg = str;
-  }
+  if (isLastErrorMsgAlive) lastErrorMsg = str;
 }
 // after main() it returns nullptr
 const char* getApiLastErrorMsg() { 
-  return lastErrorMsg.isValid() ? lastErrorMsg.c_str() 
-                                : nullptr; 
+  return isLastErrorMsgAlive ? lastErrorMsg.c_str() : nullptr; 
 }
 ```
 <br>
@@ -303,22 +300,24 @@ const char* getApiLastErrorMsg() {
 ::right::
 
 ```c
-1. m_isAlive variable is set inside DTOR
-2. m_isAlive must be volatile otherwise compiler can optimize 
-   member assignment in DTOR
-3. bool is a scalar so isAlive can always be accessed safely
-
-N.B.
-Probably there is an Undefined Behavior here because 
-we use a class member after destruction 
-but UB sanitizer is happy with this code ...
-
-
-lastErrorMsg access requires isAlive() check
-1. setter sets a new value depending on isAlive()
-2. getter returns a string or nullptr depending on isAlive()
+1. m_isAlive variable is set to false inside DTOR
+2. bool is a scalar so isLastErrorMsgAlive can be accessed 
+   safely always
+```
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
 
 
+```c
+lastErrorMsg access requires isLastErrorMsgAlive check
+1. setter sets a new value depending on isLastErrorMsgAlive
+2. getter returns a string or nullptr 
+   according to isLastErrorMsgAlive
 ```
 
 ---
@@ -767,20 +766,23 @@ hideInToc: true
 
 Dynamic initialization in this case might call `_tls_get_addr` to check initialization guard that affects performance.  
 If the variable has an invalid state - then the implementation is trivial.  
+if not - add a variable for this purpose: `thread_local bool isInitialized = false;`.
 
 ::left::
 
 ```cpp
 int getInitValue();
 
+const int InvalidValue = 0;
+
 __attribute((tls_model("initial-exec"))) 
-thread_local int value_tl = 0;
+thread_local int value_tl = InvalidValue;
 
 int getValueTLCustomInit(){
-  if (value_tl == 0) { 
-    value_tl2 = getInitValue(); 
+  if (value_tl == InvalidValue0) { 
+    value_tl = getInitValue(); 
   }
-  return value_tl2;
+  return value_tl;
 }
 ```
 
@@ -788,11 +790,11 @@ int getValueTLCustomInit(){
 
 ```asm        
 getValueTLCustomInit():
-        mov     rbx, QWORD PTR value_tl2@gottpoff[rip] # load offset
-        mov     eax, DWORD PTR fs:[rbx]                # load value
-        test    eax, eax                               # check if it's 0
-        je      .CallInitFunc                          # call init if it's 0
-        ret                                            # return otherwise
+        mov     rbx, QWORD PTR value_tl@gottpoff[rip] # load offset
+        mov     eax, DWORD PTR fs:[rbx]               # load value
+        test    eax, eax                              # check if it's 0
+        je      .CallInitFunc                         # call init if it's 0
+        ret
 .CallInitFunc:
         call    [QWORD PTR getInitValue()@GOTPCREL[rip]]
         mov     DWORD PTR fs:[rbx], eax
@@ -808,7 +810,7 @@ hideInToc: false
 <br>
 1. Prefer being explicit - use `static thread_local`
 
-2. **Lifetime of `thread_local` trivial types:** valid from the beginning till the end of the thread.
+2. **Lifetime of `thread_local` scalar types:** valid from the beginning till the end of the thread.
 
 2. **Lifetime of `thread_local` objects:**  
    - **Construction**: Occurs before the first use, but no guarantees when exactly.
