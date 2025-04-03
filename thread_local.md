@@ -34,6 +34,33 @@ hideInToc: true
 
 ## lifetime & performance
 
+<br>
+<br>
+
+<div @click="$slidev.nav.next" class="mt-12 py-1" hover:bg="white op-10" style="margin: 0 auto;">
+  <div style="display: flex; ">
+    <div style="text-align: left; margin-left: 314px;" >
+       navigate forward : <kbd>space</kbd> / <kbd>right</kbd> <carbon:arrow-right /> 
+    </div>
+  </div>
+  <div style="display: flex;">
+    <div style="text-align: left; margin-left: 300px;">
+       navigate backward : <carbon:arrow-left /><kbd>left</kbd>
+    </div>
+  </div>
+  <div style="display: flex;">
+    <div style="text-align: left; margin-left: 367px;">
+       fullscreen : <kbd>f</kbd>
+    </div>
+  </div>
+  <div style="display: flex;">
+    <div style="text-align: left; margin-left: 340px;">
+       more options : hover over left bottom corner
+    </div>
+  </div>
+</div>
+
+
 ---
 layout: two-cols
 hideInToc: true
