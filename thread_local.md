@@ -470,6 +470,7 @@ hideInToc: true
 
 #### gcc/clang are using one boolean guard for all thread_local variables
 #### Implications: if one `thread_local` is accessed - all `thread_local` of this thread are initialized.
+
 ::left::
 
 ```cpp
@@ -492,6 +493,8 @@ void f(){
 
 ::right::
 
+<div class="relative w-full">
+
 ```asm
 f():
         cmp     BYTE PTR fs:__tls_guard@tpoff, 0 # Is TLS initialized
@@ -513,6 +516,16 @@ pid:
 tid:
         .zero   4       # thread_local tid
 ```
+  <div class="absolute top-[0] left-[0] z-[1000] pointer-events-none">
+    <svg width="800" height="500">
+      <rect x="0" y="243" width="530" height="110" stroke="red" stroke-width="1" fill="none" />
+      <text x="450" y="350"  fill="#B65757" font-size="4" >
+      tls section
+      </text>      
+    </svg>
+    
+  </div>
+</div>
 
 ---
 layout: two-cols-header
